@@ -1,0 +1,104 @@
+tty: true
+
+driver:
+  enabled: true
+  kind: modern_ebpf
+
+collectors:
+  enabled: true
+
+controller:
+  kind: daemonset
+
+falcoctl:
+  indexes:
+  - name: falcosecurity
+    url: https://falcosecurity.github.io/falcoctl/index.yaml
+  - name: ${falco_registry_user}
+    url: oci://${falco_registry_host}/${falco_registry_user}
+  artifact:
+    install:
+      enabled: true
+    follow:
+      enabled: true
+  config:
+    registry:
+      auth:
+        basic:
+        - password: ${falco_registry_password}
+          registry: ${falco_registry_host}
+          user: ${falco_registry_user}
+    artifact:
+      install:
+        resolveDeps: true
+        refs: [falco-rules:latest, falco-sandbox-rules:latest, falco-incubating-rules:latest, k8saudit-eks:latest, json:latest, cloudtrail:latest, ${falco_registry_host}/${falco_registry_user}/falco-extra:latest, k8saudit-rules:latest, cloudtrail-rules:latest, ${falco_registry_host}/${falco_registry_user}/cloudtrail-extra:latest]
+      follow:
+        refs: [falco-rules:latest, falco-sandbox-rules:latest, falco-incubating-rules:latest, ${falco_registry_host}/${falco_registry_user}/falco-extra:latest, k8saudit-rules:latest, cloudtrail-rules:latest, ${falco_registry_host}/${falco_registry_user}/cloudtrail-extra:latest]
+falco:
+  rules_files:
+    - /etc/falco/falco_rules.yaml
+    - /etc/falco/falco_rules_extra.yaml
+    - /etc/falco/aws_cloudtrail_rules.yaml
+    - /etc/falco/cloudtrail_extra.yaml
+    - /etc/falco/falco_sandbox_rules.yaml
+    - /etc/falco/k8s_audit_rules.yaml
+    - /etc/falco/falco_incubating_rules.yaml
+    - /etc/falco/rules.d
+  rules:
+    - disable:
+        rule: Disallowed K8s User
+    - disable:
+        rule: Contact K8S API Server From Container
+    - disable:
+        rule: K8s Serviceaccount Created
+    - disable:
+        rule: Launch Sensitive Mount Container
+    - disable:
+        rule: Container Launched In Host Network Namespace
+    - disable:
+        rule: Service Account Created in Kube Namespace
+    - disable:
+        rule: AWS Command Executed by Untrusted User
+  plugins:
+    - name: json
+      library_path: libjson.so
+      init_config: ""
+    - name: cloudtrail
+      library_path: libcloudtrail.so
+      init_config: '{"sqsDelete": true}'
+      open_params: "sqs://${sqs_name}"
+    - name: k8saudit-eks
+      library_path: libk8saudit-eks.so
+      init_config:
+        region: ${aws_region}
+        shift: 10
+        polling_interval: 10
+        use_async: false
+        buffer_size: 500
+      open_params: ${cluster_name}
+  load_plugins: [k8saudit-eks,json,cloudtrail]
+  json_output: true
+  json_include_output_property: false
+  json_include_tags_property: false
+  http_output:
+    enabled: true
+    url: "http://falco-falcosidekick:2801/"
+  log_level: info
+
+falcosidekick:
+  enabled: true
+  webui:
+    enabled: true
+    replicaCount: 1
+  replicaCount: 1
+
+# Commented out since merged with terraform in the init provisioning
+extra:
+  env:
+    - name: AWS_DEFAULT_REGION
+      value: ${aws_region}
+
+serviceAccount:
+  create: true
+  annotations:
+    eks.amazonaws.com/role-arn: ${irsa_role_arn}

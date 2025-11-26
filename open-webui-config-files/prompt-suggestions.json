@@ -1,0 +1,16 @@
+[
+    {
+        "content": "Please provide a summary of all Kubernetes resources by usingg kubernetes_* that are currently running within the namespace named {{namespace_name}}.",
+        "title": [
+            "Provide Kubernetes resource details for specific namespace",
+            ""
+        ]
+    },
+    {
+        "content": "Please analyze falco events by using falco_* tools and checking data between {{start_time}} and {{end_time}} {{timezone}} on {{date}} {{year}}. please analyze events and let me know if there was a breach in my environment in that specific time frame and please help to reconstruct the whole attack.",
+        "title": [
+            "Investigate security incident with specific time frame",
+            ""
+        ]
+    }
+]

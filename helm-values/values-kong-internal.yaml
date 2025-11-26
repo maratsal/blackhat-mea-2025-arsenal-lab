@@ -1,0 +1,11 @@
+controller:
+  enabled: true
+  ingressController:
+    ingressClass: kong-internal
+
+gateway:
+  enabled: true
+  proxy:
+    type: ClusterIP
+  env:
+    plugins: bundled,ai-proxy,ai-request-transformer,ai-response-transformer,request-transformer

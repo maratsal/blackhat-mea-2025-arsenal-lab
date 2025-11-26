@@ -1,0 +1,11 @@
+controller:
+  enabled: true
+  ingressController:
+    ingressClass: kong-external
+
+gateway:
+  enabled: true
+  service:
+    type: LoadBalancer
+  env:
+    plugins: bundled,ai-proxy,ai-request-transformer,ai-response-transformer

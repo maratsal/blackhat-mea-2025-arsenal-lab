@@ -1,0 +1,25 @@
+ingress:
+  enabled: true
+  class: ${ingress_class}
+  host: ${ingress_host}
+  tls: true
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+
+# extraEnvVars:
+#   - name: GLOBAL_LOG_LEVEL
+#     value: DEBUG
+
+ollama:
+  enabled: true
+  models:
+    pull:
+      - llama3:instruct
+      - mistral
+      - phi3:mini
+    run:
+      - llama3:instruct
+      - mistral
+      - phi3:mini
+# logging:
+#   level: debug
